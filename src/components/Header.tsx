@@ -27,8 +27,8 @@ const Header = () => {
             <img src={cajonIcon} alt="Cajón" className="h-10 w-10 object-contain" />
             <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-neon-blue via-neon-purple to-neon-pink opacity-30 blur-lg" />
           </div>
-          <span className="font-display text-xl font-bold gradient-neon-text">
-            Cajón
+          <span className="font-display text-lg font-bold gradient-neon-text whitespace-nowrap">
+            Curso Rápido de Cajón
           </span>
         </button>
 

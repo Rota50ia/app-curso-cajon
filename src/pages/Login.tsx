@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Drum, Loader2, Music } from "lucide-react";
+import { Loader2, Music } from "lucide-react";
+import cajonIcon from "@/assets/cajon-icon.png";
 import { toast } from "sonner";
 
 const Login = () => {
@@ -26,7 +27,7 @@ const Login = () => {
     try {
       const success = await login(email, password);
       if (success) {
-        toast.success("Bem-vindo ao Cajón!");
+        toast.success("Bem-vindo ao Curso Rápido de Cajón!");
         navigate("/");
       } else {
         toast.error("Erro ao fazer login");
@@ -66,11 +67,12 @@ const Login = () => {
       <div className="relative z-10 w-full max-w-md space-y-8">
         {/* Logo */}
         <div className="text-center">
-          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-neon-blue via-neon-purple to-neon-pink animate-pulse-neon">
-            <Drum className="h-10 w-10 text-background" />
+          <div className="relative mx-auto mb-4 flex h-24 w-24 items-center justify-center">
+            <img src={cajonIcon} alt="Cajón" className="h-20 w-20 object-contain" />
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-neon-blue via-neon-purple to-neon-pink opacity-30 blur-xl" />
           </div>
-          <h1 className="font-display text-4xl font-bold gradient-neon-text">
-            Cajón
+          <h1 className="font-display text-3xl font-bold gradient-neon-text">
+            Curso Rápido de Cajón
           </h1>
           <p className="mt-2 text-muted-foreground">
             Pratique ritmos brasileiros
