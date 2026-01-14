@@ -1,7 +1,8 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Heart, LogOut, Drum } from "lucide-react";
+import { Home, Heart, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import cajonIcon from "@/assets/cajon-icon.png";
 
 const Header = () => {
   const { user, logout } = useAuth();
@@ -22,9 +23,9 @@ const Header = () => {
           onClick={() => navigate("/")}
           className="flex items-center gap-2 transition-transform hover:scale-105"
         >
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-neon-blue via-neon-purple to-neon-pink">
-            <Drum className="h-5 w-5 text-background" />
-            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-neon-blue via-neon-purple to-neon-pink opacity-50 blur-lg" />
+          <div className="relative flex h-10 w-10 items-center justify-center">
+            <img src={cajonIcon} alt="Cajón" className="h-10 w-10 object-contain" />
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-neon-blue via-neon-purple to-neon-pink opacity-30 blur-lg" />
           </div>
           <span className="font-display text-xl font-bold gradient-neon-text">
             Cajón
