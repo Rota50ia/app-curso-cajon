@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,15 +25,11 @@ const Login = () => {
 
     setIsLoading(true);
     try {
-      const success = await login(email, password);
-      if (success) {
-        toast.success("Bem-vindo ao Curso Rápido de Cajón!");
-        navigate("/");
-      } else {
-        toast.error("Erro ao fazer login");
-      }
-    } catch (error) {
-      toast.error("Erro ao fazer login");
+      await login(email, password);
+      toast.success("Bem-vindo ao Curso Rápido de Cajón!");
+      navigate("/");
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao fazer login");
     } finally {
       setIsLoading(false);
     }
@@ -84,7 +80,7 @@ const Login = () => {
           <CardHeader className="space-y-1 text-center">
             <CardTitle className="font-display text-2xl">Entrar</CardTitle>
             <CardDescription>
-              Use qualquer email e senha para testar
+              Acesse sua conta para praticar
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -122,11 +118,17 @@ const Login = () => {
                 Entrar
               </Button>
             </form>
+            <div className="mt-4 text-center text-sm">
+              <span className="text-muted-foreground">Ainda não tem senha? </span>
+              <Link to="/criar-senha" className="text-primary hover:underline font-semibold">
+                Criar Senha
+              </Link>
+            </div>
           </CardContent>
         </Card>
 
         <p className="text-center text-xs text-muted-foreground">
-          MVP de demonstração • Dados salvos localmente
+          Acesso exclusivo para alunos do curso
         </p>
       </div>
     </div>
