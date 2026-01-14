@@ -1,58 +1,102 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { User } from "@/types";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { User } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase'
 
 interface AuthContextType {
-  user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
-  logout: () => void;
-  isLoading: boolean;
+  user: User | null
+  login: (email: string, password: string) => Promise<void>
+  logout: () => Promise<void>
+  loading: boolean
+  isActive: boolean
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [isActive, setIsActive] = useState(false)
 
   useEffect(() => {
-    const savedUser = localStorage.getItem("cajon_user");
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-    setIsLoading(false);
-  }, []);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null)
+      if (session?.user) {
+        checkUserActive(session.user.email!)
+      }
+      setLoading(false)
+    })
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    // Mock login - accepts any email/password
-    if (email && password) {
-      const mockUser: User = {
-        id: crypto.randomUUID(),
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setUser(session?.user ?? null)
+      if (session?.user) {
+        await checkUserActive(session.user.email!)
+      } else {
+        setIsActive(false)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const checkUserActive = async (email: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('ativo')
+      .eq('email', email)
+      .single()
+    
+    if (!error && data) {
+      setIsActive(data.ativo)
+    }
+  }
+
+  const login = async (email: string, password: string) => {
+    setLoading(true)
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        name: email.split("@")[0]
-      };
-      setUser(mockUser);
-      localStorage.setItem("cajon_user", JSON.stringify(mockUser));
-      return true;
-    }
-    return false;
-  };
+        password,
+      })
+      
+      if (error) throw error
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("cajon_user");
-  };
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('ativo')
+        .eq('email', email)
+        .single()
+
+      if (profileError) {
+        throw new Error('Perfil não encontrado. Entre em contato com o suporte.')
+      }
+
+      if (!profile.ativo) {
+        await supabase.auth.signOut()
+        throw new Error('Sua conta está inativa. Entre em contato com o suporte.')
+      }
+
+      setUser(data.user)
+      setIsActive(true)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const logout = async () => {
+    await supabase.auth.signOut()
+    setUser(null)
+    setIsActive(false)
+  }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, logout, loading, isActive }}>
       {children}
     </AuthContext.Provider>
-  );
-};
+  )
+}
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within AuthProvider");
-  }
-  return context;
-};
+  const context = useContext(AuthContext)
+  if (!context) throw new Error('useAuth must be used within AuthProvider')
+  return context
+}
