@@ -1,117 +1,100 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect } from 'react';
 
-interface UseAudioPlayerReturn {
-  isPlaying: boolean;
-  currentTime: number;
-  duration: number;
-  playbackRate: number;
-  isLooping: boolean;
-  play: () => void;
-  pause: () => void;
-  toggle: () => void;
-  seek: (time: number) => void;
-  setPlaybackRate: (rate: number) => void;
-  toggleLoop: () => void;
-  loadTrack: (url: string) => void;
-}
-
-export const useAudioPlayer = (): UseAudioPlayerReturn => {
+export const useAudioPlayer = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playbackRate, setPlaybackRateState] = useState(1);
-  const [isLooping, setIsLooping] = useState(true);
+  const [isLooping, setIsLooping] = useState(false);
 
   useEffect(() => {
+    // Criar elemento de áudio com CORS habilitado
     audioRef.current = new Audio();
-    audioRef.current.loop = true;
+    audioRef.current.crossOrigin = "anonymous"; // ✅ CORREÇÃO AQUI
 
     const audio = audioRef.current;
 
-    const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
-    const handleLoadedMetadata = () => setDuration(audio.duration);
+    const handleTimeUpdate = () => {
+      setCurrentTime(audio.currentTime);
+    };
+
+    const handleLoadedMetadata = () => {
+      setDuration(audio.duration);
+    };
+
     const handleEnded = () => {
-      if (!isLooping) {
+      if (isLooping) {
+        audio.currentTime = 0;
+        audio.play();
+      } else {
         setIsPlaying(false);
       }
     };
-    const handleError = (e: Event) => {
-      console.error("Audio error:", e);
+
+    const handleError = (e: ErrorEvent) => {
+      console.error('Erro ao carregar áudio:', e);
       setIsPlaying(false);
     };
 
-    audio.addEventListener("timeupdate", handleTimeUpdate);
-    audio.addEventListener("loadedmetadata", handleLoadedMetadata);
-    audio.addEventListener("ended", handleEnded);
-    audio.addEventListener("error", handleError);
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+    audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('error', handleError);
 
     return () => {
-      audio.removeEventListener("timeupdate", handleTimeUpdate);
-      audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
-      audio.removeEventListener("ended", handleEnded);
-      audio.removeEventListener("error", handleError);
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('error', handleError);
       audio.pause();
-      audio.src = "";
     };
-  }, []);
-
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.loop = isLooping;
-    }
   }, [isLooping]);
 
-  const loadTrack = useCallback((url: string) => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = url;
-      audioRef.current.load();
-      setCurrentTime(0);
-      setIsPlaying(false);
-    }
-  }, []);
+  const play = () => {
+    audioRef.current?.play();
+    setIsPlaying(true);
+  };
 
-  const play = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.play().then(() => {
-        setIsPlaying(true);
-      }).catch(console.error);
-    }
-  }, []);
+  const pause = () => {
+    audioRef.current?.pause();
+    setIsPlaying(false);
+  };
 
-  const pause = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    }
-  }, []);
-
-  const toggle = useCallback(() => {
+  const toggle = () => {
     if (isPlaying) {
       pause();
     } else {
       play();
     }
-  }, [isPlaying, play, pause]);
+  };
 
-  const seek = useCallback((time: number) => {
+  const seek = (time: number) => {
     if (audioRef.current) {
       audioRef.current.currentTime = time;
       setCurrentTime(time);
     }
-  }, []);
+  };
 
-  const setPlaybackRate = useCallback((rate: number) => {
+  const loadTrack = (url: string) => {
+    if (audioRef.current) {
+      audioRef.current.src = url;
+      audioRef.current.load();
+      setCurrentTime(0);
+      setIsPlaying(false);
+    }
+  };
+
+  const setPlaybackRate = (rate: number) => {
     if (audioRef.current) {
       audioRef.current.playbackRate = rate;
       setPlaybackRateState(rate);
     }
-  }, []);
+  };
 
-  const toggleLoop = useCallback(() => {
-    setIsLooping(prev => !prev);
-  }, []);
+  const toggleLoop = () => {
+    setIsLooping(!isLooping);
+  };
 
   return {
     isPlaying,
@@ -123,8 +106,8 @@ export const useAudioPlayer = (): UseAudioPlayerReturn => {
     pause,
     toggle,
     seek,
+    loadTrack,
     setPlaybackRate,
     toggleLoop,
-    loadTrack
   };
 };
