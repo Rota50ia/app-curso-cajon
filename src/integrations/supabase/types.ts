@@ -14,7 +14,133 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      faixas: {
+        Row: {
+          arquivo_url: string
+          aula_id: number | null
+          bpm: number
+          created_at: string | null
+          duracao: number | null
+          estilo: string
+          id: number
+          titulo: string
+          updated_at: string | null
+        }
+        Insert: {
+          arquivo_url: string
+          aula_id?: number | null
+          bpm: number
+          created_at?: string | null
+          duracao?: number | null
+          estilo: string
+          id?: number
+          titulo: string
+          updated_at?: string | null
+        }
+        Update: {
+          arquivo_url?: string
+          aula_id?: number | null
+          bpm?: number
+          created_at?: string | null
+          duracao?: number | null
+          estilo?: string
+          id?: number
+          titulo?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      favoritos: {
+        Row: {
+          created_at: string | null
+          faixa_id: number
+          id: number
+          usuario_email: string
+        }
+        Insert: {
+          created_at?: string | null
+          faixa_id: number
+          id?: number
+          usuario_email: string
+        }
+        Update: {
+          created_at?: string | null
+          faixa_id?: number
+          id?: number
+          usuario_email?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favoritos_faixa_id_fkey"
+            columns: ["faixa_id"]
+            isOneToOne: false
+            referencedRelation: "faixas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      historico: {
+        Row: {
+          bpm_tocado: number
+          created_at: string | null
+          faixa_id: number
+          id: number
+          usuario_email: string
+        }
+        Insert: {
+          bpm_tocado: number
+          created_at?: string | null
+          faixa_id: number
+          id?: number
+          usuario_email: string
+        }
+        Update: {
+          bpm_tocado?: number
+          created_at?: string | null
+          faixa_id?: number
+          id?: number
+          usuario_email?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historico_faixa_id_fkey"
+            columns: ["faixa_id"]
+            isOneToOne: false
+            referencedRelation: "faixas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          ativo: boolean | null
+          avatar_url: string | null
+          created_at: string | null
+          email: string
+          id: string
+          nome: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          avatar_url?: string | null
+          created_at?: string | null
+          email: string
+          id?: string
+          nome?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          nome?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
