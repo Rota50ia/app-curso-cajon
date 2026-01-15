@@ -1,7 +1,7 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { mockFaixas } from "@/constants/mockData";
-import { HistoricoItem } from "@/types";
+import { useFaixas } from "@/hooks/useFaixas";
+import { useHistorico } from "@/hooks/useHistorico";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import BPMControls from "@/components/BPMControls";
 import { Button } from "@/components/ui/button";
@@ -21,10 +21,11 @@ import {
 const Player = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const faixa = useMemo(() => mockFaixas.find(f => f.id === Number(id)), [id]);
+  const { faixas, loading, error } = useFaixas();
+  const { addToHistory } = useHistorico();
   
   const [favorites, setFavorites] = useState<number[]>([]);
-  const [currentBPM, setCurrentBPM] = useState(faixa?.bpm || 100);
+  const [currentBPM, setCurrentBPM] = useState(100);
   
   const {
     isPlaying,
@@ -38,21 +39,22 @@ const Player = () => {
     loadTrack
   } = useAudioPlayer();
 
+  const faixa = faixas.find((f) => f.id === Number(id));
+
   useEffect(() => {
     if (faixa) {
+      console.log('Carregando faixa:', faixa.titulo, faixa.arquivo_url);
       loadTrack(faixa.arquivo_url);
       setCurrentBPM(faixa.bpm);
-      
-      // Add to history
-      const savedHistorico = localStorage.getItem("cajon_historico");
-      const historico: HistoricoItem[] = savedHistorico ? JSON.parse(savedHistorico) : [];
-      const newHistorico: HistoricoItem[] = [
-        { faixaId: faixa.id, playedAt: new Date().toISOString() },
-        ...historico.filter(h => h.faixaId !== faixa.id)
-      ].slice(0, 20);
-      localStorage.setItem("cajon_historico", JSON.stringify(newHistorico));
     }
-  }, [faixa, loadTrack]);
+  }, [faixa?.id]);
+
+  useEffect(() => {
+    if (faixa && isPlaying) {
+      const currentBpmValue = Math.round(faixa.bpm * (currentBPM / faixa.bpm));
+      addToHistory(faixa.id, currentBpmValue);
+    }
+  }, [isPlaying, faixa?.id]);
 
   useEffect(() => {
     if (faixa) {
@@ -92,6 +94,24 @@ const Player = () => {
   const restart = () => {
     seek(0);
   };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <p className="text-muted-foreground">Carregando faixa...</p>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <p className="text-destructive">Erro: {error}</p>
+      </div>
+    );
+  }
 
   if (!faixa) {
     return (
@@ -153,6 +173,9 @@ const Player = () => {
             >
               {faixa.estilo}
             </Badge>
+            <p className="text-xs text-muted-foreground mt-2">
+              BPM Original: {faixa.bpm}
+            </p>
           </div>
         </div>
 

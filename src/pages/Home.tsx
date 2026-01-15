@@ -1,60 +1,46 @@
-import { useState, useEffect } from "react";
-import { mockFaixas } from "@/constants/mockData";
-import { Faixa, HistoricoItem } from "@/types";
+import { useNavigate } from "react-router-dom";
+import { useFaixas } from "@/hooks/useFaixas";
+import { useFavoritos } from "@/hooks/useFavoritos";
 import Header from "@/components/Header";
 import TrackCard from "@/components/TrackCard";
 import { Badge } from "@/components/ui/badge";
 import { Music, Clock, Heart, Zap } from "lucide-react";
 
 const Home = () => {
-  const [favorites, setFavorites] = useState<number[]>([]);
-  const [historico, setHistorico] = useState<HistoricoItem[]>([]);
+  const navigate = useNavigate();
+  const { faixas, loading, error } = useFaixas();
+  const { favoritos, toggleFavorite } = useFavoritos();
 
-  useEffect(() => {
-    const savedFavorites = localStorage.getItem("cajon_favorites");
-    if (savedFavorites) {
-      setFavorites(JSON.parse(savedFavorites));
-    }
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <p className="text-muted-foreground">Carregando faixas...</p>
+      </div>
+    );
+  }
 
-    const savedHistorico = localStorage.getItem("cajon_historico");
-    if (savedHistorico) {
-      setHistorico(JSON.parse(savedHistorico));
-    }
-  }, []);
-
-  const toggleFavorite = (id: number) => {
-    setFavorites(prev => {
-      const newFavorites = prev.includes(id) 
-        ? prev.filter(f => f !== id) 
-        : [...prev, id];
-      localStorage.setItem("cajon_favorites", JSON.stringify(newFavorites));
-      return newFavorites;
-    });
-  };
-
-  const recentTracks = historico
-    .slice(0, 3)
-    .map(h => mockFaixas.find(f => f.id === h.faixaId))
-    .filter(Boolean) as Faixa[];
+  // Error state
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <p className="text-destructive">Erro ao carregar: {error}</p>
+      </div>
+    );
+  }
 
   const stats = [
     { 
       icon: Music, 
       label: "Faixas", 
-      value: mockFaixas.length,
+      value: faixas.length,
       color: "text-neon-blue" 
     },
     { 
       icon: Heart, 
       label: "Favoritos", 
-      value: favorites.length,
+      value: favoritos.length,
       color: "text-neon-pink" 
-    },
-    { 
-      icon: Clock, 
-      label: "Sessões", 
-      value: historico.length,
-      color: "text-neon-purple" 
     },
   ];
 
@@ -64,7 +50,7 @@ const Home = () => {
       
       <main className="container px-4 py-6 space-y-8">
         {/* Stats */}
-        <section className="grid grid-cols-3 gap-3">
+        <section className="grid grid-cols-2 gap-3">
           {stats.map((stat) => (
             <div
               key={stat.label}
@@ -79,27 +65,6 @@ const Home = () => {
           ))}
         </section>
 
-        {/* Recent tracks */}
-        {recentTracks.length > 0 && (
-          <section className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-neon-purple" />
-              <h2 className="font-display text-lg font-semibold">Recentes</h2>
-            </div>
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-              {recentTracks.map((faixa) => (
-                <div key={faixa.id} className="min-w-[200px]">
-                  <TrackCard
-                    faixa={faixa}
-                    isFavorite={favorites.includes(faixa.id)}
-                    onToggleFavorite={toggleFavorite}
-                  />
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
         {/* All tracks */}
         <section className="space-y-4">
           <div className="flex items-center justify-between">
@@ -108,20 +73,27 @@ const Home = () => {
               <h2 className="font-display text-lg font-semibold">Todas as Faixas</h2>
             </div>
             <Badge variant="secondary" className="bg-muted">
-              {mockFaixas.length} faixas
+              {faixas.length} faixas
             </Badge>
           </div>
           
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {mockFaixas.map((faixa) => (
+            {faixas.map((faixa) => (
               <TrackCard
                 key={faixa.id}
                 faixa={faixa}
-                isFavorite={favorites.includes(faixa.id)}
+                isFavorite={favoritos.includes(faixa.id)}
                 onToggleFavorite={toggleFavorite}
               />
             ))}
           </div>
+
+          {faixas.length === 0 && (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Nenhuma faixa disponível no momento.</p>
+              <p className="text-sm text-muted-foreground mt-2">Verifique se há faixas cadastradas no banco.</p>
+            </div>
+          )}
         </section>
       </main>
     </div>
