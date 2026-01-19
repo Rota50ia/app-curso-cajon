@@ -113,30 +113,36 @@ export type Database = {
       }
       profiles: {
         Row: {
+          activation_token: string | null
           ativo: boolean | null
           avatar_url: string | null
           created_at: string | null
           email: string
           id: string
           nome: string | null
+          token_expires_at: string | null
           updated_at: string | null
         }
         Insert: {
+          activation_token?: string | null
           ativo?: boolean | null
           avatar_url?: string | null
           created_at?: string | null
           email: string
           id?: string
           nome?: string | null
+          token_expires_at?: string | null
           updated_at?: string | null
         }
         Update: {
+          activation_token?: string | null
           ativo?: boolean | null
           avatar_url?: string | null
           created_at?: string | null
           email?: string
           id?: string
           nome?: string | null
+          token_expires_at?: string | null
           updated_at?: string | null
         }
         Relationships: []

@@ -119,10 +119,10 @@ const Login = () => {
               </Button>
             </form>
             <div className="mt-4 text-center text-sm">
-              <span className="text-muted-foreground">Ainda não tem senha? </span>
-              <Link to="/criar-senha" className="text-primary hover:underline font-semibold">
-                Criar Senha
-              </Link>
+              <span className="text-muted-foreground">Comprou o curso? </span>
+              <span className="text-muted-foreground/70 text-xs block mt-1">
+                Verifique seu email para o link de ativação
+              </span>
             </div>
           </CardContent>
         </Card>
