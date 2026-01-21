@@ -1,37 +1,15 @@
-import { useState, useEffect } from "react";
-import { mockFaixas } from "@/constants/mockData";
-import { Faixa } from "@/types";
+import { useFaixas } from "@/hooks/useFaixas";
+import { useFavoritos } from "@/hooks/useFavoritos";
 import Header from "@/components/Header";
 import TrackCard from "@/components/TrackCard";
 import { Heart, Music } from "lucide-react";
 
 const Favorites = () => {
-  const [favorites, setFavorites] = useState<number[]>([]);
-  const [favoriteTracks, setFavoriteTracks] = useState<Faixa[]>([]);
+  const { faixas, loading: loadingFaixas } = useFaixas();
+  const { favoritos, toggleFavorite, loading: loadingFavoritos } = useFavoritos();
 
-  useEffect(() => {
-    const savedFavorites = localStorage.getItem("cajon_favorites");
-    if (savedFavorites) {
-      const ids = JSON.parse(savedFavorites);
-      setFavorites(ids);
-      const tracks = mockFaixas.filter(f => ids.includes(f.id));
-      setFavoriteTracks(tracks);
-    }
-  }, []);
-
-  const toggleFavorite = (id: number) => {
-    setFavorites(prev => {
-      const newFavorites = prev.includes(id) 
-        ? prev.filter(f => f !== id) 
-        : [...prev, id];
-      localStorage.setItem("cajon_favorites", JSON.stringify(newFavorites));
-      
-      const tracks = mockFaixas.filter(f => newFavorites.includes(f.id));
-      setFavoriteTracks(tracks);
-      
-      return newFavorites;
-    });
-  };
+  const favoriteTracks = faixas.filter(f => favoritos.includes(f.id));
+  const loading = loadingFaixas || loadingFavoritos;
 
   return (
     <div className="min-h-screen bg-background">
@@ -45,12 +23,16 @@ const Favorites = () => {
           <div>
             <h1 className="font-display text-2xl font-bold">Favoritos</h1>
             <p className="text-sm text-muted-foreground">
-              {favoriteTracks.length} {favoriteTracks.length === 1 ? "faixa" : "faixas"}
+              {loading ? "Carregando..." : `${favoriteTracks.length} ${favoriteTracks.length === 1 ? "faixa" : "faixas"}`}
             </p>
           </div>
         </div>
 
-        {favoriteTracks.length === 0 ? (
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          </div>
+        ) : favoriteTracks.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-muted">
               <Music className="h-10 w-10 text-muted-foreground" />
@@ -68,7 +50,7 @@ const Favorites = () => {
               <TrackCard
                 key={faixa.id}
                 faixa={faixa}
-                isFavorite={favorites.includes(faixa.id)}
+                isFavorite={true}
                 onToggleFavorite={toggleFavorite}
               />
             ))}

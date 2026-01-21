@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useFaixas } from "@/hooks/useFaixas";
 import { useHistorico } from "@/hooks/useHistorico";
+import { useFavoritos } from "@/hooks/useFavoritos";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import BPMControls from "@/components/BPMControls";
 import { Button } from "@/components/ui/button";
@@ -21,10 +22,10 @@ import {
 const Player = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { faixas, loading, error } = useFaixas();
+  const { faixas, loading: loadingFaixas, error } = useFaixas();
   const { addToHistory } = useHistorico();
+  const { favoritos, toggleFavorite } = useFavoritos();
   
-  const [favorites, setFavorites] = useState<number[]>([]);
   const [currentBPM, setCurrentBPM] = useState(100);
   
   const {
@@ -43,7 +44,6 @@ const Player = () => {
 
   useEffect(() => {
     if (faixa) {
-      console.log('Carregando faixa:', faixa.titulo, faixa.arquivo_url);
       loadTrack(faixa.arquivo_url);
       setCurrentBPM(faixa.bpm);
     }
@@ -63,24 +63,6 @@ const Player = () => {
     }
   }, [currentBPM, faixa, setPlaybackRate]);
 
-  useEffect(() => {
-    const savedFavorites = localStorage.getItem("cajon_favorites");
-    if (savedFavorites) {
-      setFavorites(JSON.parse(savedFavorites));
-    }
-  }, []);
-
-  const toggleFavorite = () => {
-    if (!faixa) return;
-    setFavorites(prev => {
-      const newFavorites = prev.includes(faixa.id) 
-        ? prev.filter(f => f !== faixa.id) 
-        : [...prev, faixa.id];
-      localStorage.setItem("cajon_favorites", JSON.stringify(newFavorites));
-      return newFavorites;
-    });
-  };
-
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
@@ -95,8 +77,7 @@ const Player = () => {
     seek(0);
   };
 
-  // Loading state
-  if (loading) {
+  if (loadingFaixas) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <p className="text-muted-foreground">Carregando faixa...</p>
@@ -104,7 +85,6 @@ const Player = () => {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -121,17 +101,15 @@ const Player = () => {
     );
   }
 
-  const isFavorite = favorites.includes(faixa.id);
+  const isFavorite = favoritos.includes(faixa.id);
 
   return (
     <div className="relative min-h-screen bg-background">
-      {/* Background effects */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -left-1/4 top-1/4 h-[400px] w-[400px] rounded-full bg-neon-blue/20 blur-[100px]" />
         <div className="absolute -right-1/4 bottom-1/4 h-[400px] w-[400px] rounded-full bg-neon-purple/20 blur-[100px]" />
       </div>
 
-      {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-xl">
         <div className="container flex h-14 items-center justify-between px-4">
           <Button
@@ -148,7 +126,7 @@ const Player = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={toggleFavorite}
+            onClick={() => toggleFavorite(faixa.id)}
             className={`rounded-xl ${isFavorite ? "text-accent" : "text-muted-foreground"}`}
           >
             <Heart className={`h-5 w-5 ${isFavorite ? "fill-current" : ""}`} />
@@ -157,7 +135,6 @@ const Player = () => {
       </header>
 
       <main className="container relative z-10 px-4 py-6 space-y-6">
-        {/* Track info */}
         <div className="text-center space-y-4">
           <div className="mx-auto flex h-32 w-32 items-center justify-center rounded-3xl bg-gradient-to-br from-neon-blue via-neon-purple to-neon-pink animate-pulse-glow">
             <Music className="h-16 w-16 text-background" />
@@ -179,7 +156,6 @@ const Player = () => {
           </div>
         </div>
 
-        {/* Progress bar */}
         <div className="space-y-2">
           <Slider
             value={[currentTime]}
@@ -195,7 +171,6 @@ const Player = () => {
           </div>
         </div>
 
-        {/* Controls */}
         <div className="flex items-center justify-center gap-4">
           <Button
             variant="ghost"
@@ -231,7 +206,6 @@ const Player = () => {
           </Button>
         </div>
 
-        {/* Loop indicator */}
         <div className="flex justify-center">
           <Badge 
             variant={isLooping ? "default" : "secondary"}
@@ -242,7 +216,6 @@ const Player = () => {
           </Badge>
         </div>
 
-        {/* BPM Controls */}
         <BPMControls
           currentBPM={currentBPM}
           originalBPM={faixa.bpm}
@@ -251,7 +224,6 @@ const Player = () => {
           maxBPM={120}
         />
 
-        {/* Audio quality indicator */}
         <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
           <Volume2 className="h-4 w-4" />
           <span>Streaming de alta qualidade</span>
