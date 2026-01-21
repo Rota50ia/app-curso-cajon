@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate, Link } from 'react-router-dom'
-import { supabase } from '@/integrations/supabase/client'
+import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -48,16 +48,20 @@ const Ativar = () => {
     setIsLoading(true)
 
     try {
-      const { data, error: fnError } = await supabase.functions.invoke('activate-user', {
-        body: { token, password }
+      // Chamada direta para a Edge Function no Supabase Externo
+      const response = await fetch('https://ctvdlamxicoxniyqcpfd.supabase.co/functions/v1/activate-user', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabase.auth.getSession().then(({data}) => data.session?.access_token || '')}`
+        },
+        body: JSON.stringify({ token, password })
       })
 
-      if (fnError) {
-        throw new Error(fnError.message || 'Erro ao ativar conta')
-      }
+      const data = await response.json()
 
-      if (data?.error) {
-        throw new Error(data.error)
+      if (!response.ok || data?.error) {
+        throw new Error(data?.error || 'Erro ao ativar conta')
       }
 
       setSuccess(true)

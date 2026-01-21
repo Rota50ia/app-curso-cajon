@@ -12,10 +12,20 @@ interface TrackCardProps {
 }
 
 const estiloColors: Record<string, { bg: string; text: string; glow: string }> = {
+  baiao: { 
+    bg: "bg-neon-orange/20", 
+    text: "text-neon-orange", 
+    glow: "hover:shadow-[0_0_20px_hsl(25_100%_50%/0.3)]" 
+  },
   baião: { 
     bg: "bg-neon-orange/20", 
     text: "text-neon-orange", 
     glow: "hover:shadow-[0_0_20px_hsl(25_100%_50%/0.3)]" 
+  },
+  ijexa: { 
+    bg: "bg-neon-purple/20", 
+    text: "text-neon-purple", 
+    glow: "hover:shadow-[0_0_20px_hsl(270_91%_65%/0.3)]" 
   },
   ijexá: { 
     bg: "bg-neon-purple/20", 
@@ -27,11 +37,21 @@ const estiloColors: Record<string, { bg: string; text: string; glow: string }> =
     text: "text-neon-blue", 
     glow: "hover:shadow-[0_0_20px_hsl(187_100%_50%/0.3)]" 
   },
+  forró: { 
+    bg: "bg-neon-green/20", 
+    text: "text-neon-green", 
+    glow: "hover:shadow-[0_0_20px_hsl(142_70%_50%/0.3)]" 
+  },
+  samba: { 
+    bg: "bg-neon-yellow/20", 
+    text: "text-neon-yellow", 
+    glow: "hover:shadow-[0_0_20px_hsl(48_100%_50%/0.3)]" 
+  },
 };
 
 const TrackCard = ({ faixa, isFavorite, onToggleFavorite }: TrackCardProps) => {
   const navigate = useNavigate();
-  const colors = estiloColors[faixa.estilo] || estiloColors.baião;
+  const colors = estiloColors[faixa.estilo.toLowerCase()] || estiloColors.baiao;
 
   return (
     <Card 
