@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate, Link } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -49,11 +48,11 @@ const Ativar = () => {
 
     try {
       // Chamada direta para a Edge Function no Supabase Externo
+      // Removido o cabeçalho de Authorization pois o usuário ainda não está logado
       const response = await fetch('https://ctvdlamxicoxniyqcpfd.supabase.co/functions/v1/activate-user', {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabase.auth.getSession().then(({data}) => data.session?.access_token || '')}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ token, password })
       })
@@ -110,7 +109,6 @@ const Ativar = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      {/* Background decorations */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
